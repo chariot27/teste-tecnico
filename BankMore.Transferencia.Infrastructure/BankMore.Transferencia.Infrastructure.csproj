@@ -13,4 +13,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\BankMore.Transferencia.Domain\BankMore.Transferencia.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

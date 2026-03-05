@@ -9,7 +9,7 @@ namespace BankMore.ContaCorrente.Domain.Interfaces
 {
     public interface IIdempotenciaRepository
     {
-        Task<Idempotencia> ObterPorChaveAsync(string chaveIdempotencia)
+        Task<Idempotencia> ObterPorChaveAsync(string chaveIdempotencia);
         Task SalvarChaveAsync(Idempotencia idempotencia);
     }
 }
