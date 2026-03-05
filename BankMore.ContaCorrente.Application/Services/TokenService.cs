@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using BankMore.ContaCorrente.Domain.Entities;
+using BankMore.ContaCorrente.Domain.Interfaces;
 
 public class TokenService : ITokenService
 {
@@ -13,18 +14,24 @@ public class TokenService : ITokenService
     public string GerarToken(ContaCorrente conta)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_config["Jwt:Key"] ?? "ChaveSecretaBankMore2024_Ailos");
+
+        // Tenta ler do appsettings.json, se não houver, usa a chave padrão de 32 caracteres
+        var secretKey = _config["Jwt:Key"] ?? "SuaChaveSuperSecretaComPeloMenos32Caracteres!!";
+        var key = Encoding.ASCII.GetBytes(secretKey);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
             {
-                new Claim("idcontacorrente", conta.IdContaCorrente), // Requisito: Identificação no token 
+                // PADRONIZAÇÃO: Usando "idcontacorrente" (minúsculo) para evitar erro 401 no Program.cs
+                new Claim("idcontacorrente", conta.IdContaCorrente),
                 new Claim(ClaimTypes.Name, conta.Nome),
                 new Claim("numero_conta", conta.Numero.ToString())
             }),
             Expires = DateTime.UtcNow.AddHours(2),
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            SigningCredentials = new SigningCredentials(
+                new SymmetricSecurityKey(key),
+                SecurityAlgorithms.HmacSha256Signature)
         };
 
         var token = tokenHandler.CreateToken(tokenDescriptor);

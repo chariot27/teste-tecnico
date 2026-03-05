@@ -2,62 +2,63 @@
 using Microsoft.AspNetCore.Http;
 using BankMore.ContaCorrente.Domain.Interfaces;
 using BankMore.ContaCorrente.Application.Services;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace BankMore.ContaCorrente.Application.Handlers
 {
-    // 1. O Command de Login
     public class LoginCommand : IRequest<IResult>
     {
-        public string Cpf { get; set; }
-        public string Senha { get; set; }
+        public string Cpf { get; set; } = string.Empty;
+        public string Senha { get; set; } = string.Empty;
     }
 
-    // 2. O Handler de Login
     public class LoginHandler : IRequestHandler<LoginCommand, IResult>
     {
         private readonly IContaCorrenteRepository _repository;
         private readonly IPasswordService _passwordService;
+        private readonly ITokenService _tokenService;
 
-        public LoginHandler(IContaCorrenteRepository repository, IPasswordService passwordService)
+        public LoginHandler(
+            IContaCorrenteRepository repository,
+            IPasswordService passwordService,
+            ITokenService tokenService)
         {
             _repository = repository;
             _passwordService = passwordService;
+            _tokenService = tokenService;
         }
 
         public async Task<IResult> Handle(LoginCommand request, CancellationToken ct)
         {
-            // A. Buscar o usuário pelo CPF
+            // Busca a conta pelo CPF
             var conta = await _repository.ObterPorCpfAsync(request.Cpf);
 
-            // B. Validação de Segurança: Se não achar, não diga "CPF não encontrado" 
-            // Diga "Credenciais inválidas" para evitar enumeração de usuários.
+            // Validação inicial
             if (conta == null)
             {
-                return Microsoft.AspNetCore.Http.Results.Unauthorized();
+                return Results.Unauthorized();
             }
 
-            // C. Verificar se a conta está ativa
+            // Verifica se a conta está ativa
             if (conta.Ativo == 0)
             {
-                return Microsoft.AspNetCore.Http.Results.Json(new { mensagem = "Conta inativa." }, statusCode: 403);
+                return Results.Json(new { mensagem = "Conta inativa." }, statusCode: 403);
             }
 
-            // D. Validar a Senha usando o Hash e o Salt do banco
-            // Presumindo que seu IPasswordService tenha um método 'Verificar'
+            // Valida a senha (Hash + Salt)
             bool senhaValida = _passwordService.Verificar(request.Senha, conta.Senha, conta.Salt);
 
             if (!senhaValida)
             {
-                return Microsoft.AspNetCore.Http.Results.Unauthorized();
+                return Results.Unauthorized();
             }
 
-            // E. Retorno de Sucesso
-            // Aqui você poderia retornar um Token JWT. Por enquanto, retornaremos os dados básicos.
-            return Microsoft.AspNetCore.Http.Results.Ok(new
+            // Gera o Token JWT contendo a claim "idcontacorrente"
+            var token = _tokenService.GerarToken(conta);
+
+            return Results.Ok(new
             {
                 mensagem = "Login realizado com sucesso",
+                token = token,
                 usuario = conta.Nome,
                 numeroConta = conta.Numero
             });

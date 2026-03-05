@@ -48,12 +48,13 @@ namespace BankMore.ContaCorrente.Infrastructure.Repositories
             await conn.ExecuteAsync(sql, conta);
         }
 
-        public async Task AtualizarStatusAsync(string idContaCorrente, int ativo)
+        public async Task<bool> AtualizarStatusAsync(string id, int status)
         {
-            using var conn = _dbSession.CreateConnection();
-            await conn.ExecuteAsync(
-                "UPDATE contacorrente SET ativo = @ativo WHERE idcontacorrente = @idContaCorrente",
-                new { ativo, idContaCorrente });
+            using var connection = _dbSession.CreateConnection();
+            const string sql = "UPDATE contacorrente SET ativo = @status WHERE idcontacorrente = @id";
+            // O retorno de ExecuteAsync indica quantas linhas foram afetadas
+            var rowsAffected = await connection.ExecuteAsync(sql, new { id, status });
+            return rowsAffected > 0;
         }
 
         public async Task<int> ObterProximoNumeroContaAsync()

@@ -18,7 +18,7 @@ namespace BankMore.ContaCorrente.Domain.Interfaces
         Task AdicionarAsync(Entities.ContaCorrente conta);
 
         // Regra de Inativação (Regra: source 46)
-        Task AtualizarStatusAsync(string idContaCorrente, int ativo);
+        Task<bool> AtualizarStatusAsync(string id, int status);
 
         // Regra de retorno do número da conta após cadastro (Regra: source 32)
         Task<int> ObterProximoNumeroContaAsync();
