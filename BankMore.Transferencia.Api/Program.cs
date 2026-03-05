@@ -1,4 +1,6 @@
+using BankMore.Transferencia.Domain.Interfaces;
 using BankMore.Transferencia.Infrastructure.Data;
+using BankMore.Transferencia.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +11,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<DbSessionTransferencia>();
+builder.Services.AddScoped<ITransferenciaRepository, TransferenciaRepository>();
+builder.Services.AddScoped<IIdempotenciaRepository, IdempotenciaRepository>();
 
 var app = builder.Build();
 

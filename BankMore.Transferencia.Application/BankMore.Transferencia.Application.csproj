@@ -11,4 +11,8 @@
     <PackageReference Include="PM2.Extensions.MediaR" Version="2.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DTOs\" />
+  </ItemGroup>
+
 </Project>

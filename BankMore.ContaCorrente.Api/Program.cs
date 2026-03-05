@@ -1,5 +1,7 @@
 
+using BankMore.ContaCorrente.Domain.Interfaces;
 using BankMore.ContaCorrente.Infrastructure.Data;
+using BankMore.ContaCorrente.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +14,9 @@ builder.Services.AddSwaggerGen();
 // No Program.cs da API
 
 builder.Services.AddScoped<DbSessionContaCorrente>();
+builder.Services.AddScoped<IContaCorrenteRepository, ContaCorrenteRepository>();
+
+builder.Services.AddScoped<IIdempotenciaRepository, IdempotenciaRepository>();
 
 var app = builder.Build();
 

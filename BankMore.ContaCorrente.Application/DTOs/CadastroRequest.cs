@@ -1,0 +1,1 @@
+﻿public record CadastroRequest(string Nome, string Cpf, string Senha);
