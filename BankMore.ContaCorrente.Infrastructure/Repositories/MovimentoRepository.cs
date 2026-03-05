@@ -33,6 +33,7 @@ namespace BankMore.ContaCorrente.Infrastructure.Repositories
 
         public async Task<decimal> ObterSaldoPorContaAsync(string idContaCorrente)
         {
+            
             const string sql = @"
                 SELECT 
                     TOTAL(CASE WHEN tipomovimento = 'C' THEN valor ELSE 0 END) - 
@@ -40,9 +41,7 @@ namespace BankMore.ContaCorrente.Infrastructure.Repositories
                 FROM movimento
                 WHERE idcontacorrente = @idContaCorrente";
 
-            var saldo = await _session.Connection.QueryFirstOrDefaultAsync<decimal>(sql, new { idContaCorrente });
-
-            return saldo;
+            return await _session.Connection.QueryFirstOrDefaultAsync<decimal>(sql, new { idContaCorrente });
         }
     }
 }

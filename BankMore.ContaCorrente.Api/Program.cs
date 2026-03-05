@@ -147,4 +147,27 @@ app.MapPost("/api/contacorrente/movimentacao", async ([FromBody] MovimentarConta
 .WithOpenApi()
 .RequireAuthorization();
 
+app.MapGet("/api/contacorrente/saldo", async (IMediator mediator, ClaimsPrincipal user) =>
+{
+
+    var idConta = user.FindFirst("idcontacorrente")?.Value;
+
+    if (string.IsNullOrEmpty(idConta))
+        return Results.Json(new { message = "Token inválido", type = "USER_UNAUTHORIZED" }, statusCode: 403);
+
+    try
+    {
+        var result = await mediator.Send(new SaldoQuery { IdContaCorrente = idConta });
+        return Results.Ok(result); // Retorna 200 com o body [cite: 69]
+    }
+    catch (Exception ex)
+    {
+
+        return Results.Json(new { message = ex.Message, type = ex.Message }, statusCode: 400);
+    }
+})
+.WithName("ConsultarSaldo")
+.WithOpenApi()
+.RequireAuthorization(); // Garante autenticação via JWT [cite: 14]
+
 app.Run();
