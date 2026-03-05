@@ -1,25 +1,25 @@
 ﻿using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using System.Data;
 
 namespace BankMore.ContaCorrente.Infrastructure.Data
 {
-    public class DbSessionContaCorrente
+    public class DbSessionContaCorrente : IDisposable
     {
-        private readonly string _connectionString;
+        public IDbConnection Connection { get; }
 
         public DbSessionContaCorrente(IConfiguration configuration)
         {
-            // Busca a string de conexão configurada no appsettings
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
+            // Pega a string de conexão do appsettings.json
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+            Connection = new SqliteConnection(connectionString);
+            Connection.Open();
         }
 
-        // Método para criar a conexão que o Dapper utilizará
-        public IDbConnection CreateConnection() => new SqliteConnection(_connectionString);
+        public void Dispose()
+        {
+            Connection?.Dispose();
+        }
     }
 }

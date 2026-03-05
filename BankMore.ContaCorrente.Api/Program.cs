@@ -17,6 +17,8 @@ var builder = WebApplication.CreateBuilder(args);
 // --- 1. REGISTRO DE DEPENDÊNCIAS ---
 builder.Services.AddScoped<DbSessionContaCorrente>();
 builder.Services.AddScoped<IContaCorrenteRepository, ContaCorrenteRepository>();
+builder.Services.AddScoped<IMovimentoRepository, MovimentoRepository>();
+builder.Services.AddScoped<IIdempotenciaRepository, IdempotenciaRepository>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
@@ -89,7 +91,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -111,7 +112,6 @@ app.MapPost("/api/contacorrente/login", async ([FromBody] LoginCommand command, 
 
 app.MapPatch("/api/contacorrente/inativar", async ([FromBody] InativarContaCommand command, IMediator mediator, ClaimsPrincipal user) =>
 {
-    // O nome aqui deve ser MINÚSCULO para bater com o seu TokenService
     var idConta = user.FindFirst("idcontacorrente")?.Value;
 
     if (string.IsNullOrEmpty(idConta))
@@ -121,6 +121,29 @@ app.MapPatch("/api/contacorrente/inativar", async ([FromBody] InativarContaComma
     return await mediator.Send(command);
 })
 .WithName("InativarConta")
+.WithOpenApi()
+.RequireAuthorization();
+
+app.MapPost("/api/contacorrente/movimentacao", async ([FromBody] MovimentarContaCommand command, IMediator mediator, ClaimsPrincipal user) =>
+{
+    var idContaToken = user.FindFirst("idcontacorrente")?.Value;
+
+    if (string.IsNullOrEmpty(idContaToken))
+        return Results.Json(new { message = "Token inválido ou expirado", type = "USER_UNAUTHORIZED" }, statusCode: 403);
+
+    command.ContaIdDoToken = idContaToken;
+
+    try
+    {
+        var sucesso = await mediator.Send(command);
+        return sucesso ? Results.NoContent() : Results.BadRequest();
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(new { message = ex.Message, type = ex.Message }, statusCode: 400);
+    }
+})
+.WithName("MovimentarConta")
 .WithOpenApi()
 .RequireAuthorization();
 
