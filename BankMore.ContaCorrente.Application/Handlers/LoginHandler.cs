@@ -32,7 +32,7 @@ namespace BankMore.ContaCorrente.Application.Handlers
             // Busca a conta pelo CPF
             var conta = await _repository.ObterPorCpfAsync(request.Cpf);
 
-            // Validação inicial
+            // Validação inicial: Usuário não encontrado
             if (conta == null)
             {
                 return Results.Unauthorized();
@@ -55,6 +55,8 @@ namespace BankMore.ContaCorrente.Application.Handlers
             // Gera o Token JWT contendo a claim "idcontacorrente"
             var token = _tokenService.GerarToken(conta);
 
+            // Ao retornar Results.Ok() diretamente, o ASP.NET Core lida com a serialização 
+            // correta do corpo da resposta, evitando o objeto "value".
             return Results.Ok(new
             {
                 mensagem = "Login realizado com sucesso",

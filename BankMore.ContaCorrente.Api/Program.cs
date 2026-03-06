@@ -115,8 +115,12 @@ app.MapPost("/api/contacorrente/cadastro", async ([FromBody] CadastrarContaComma
 // Login
 app.MapPost("/api/contacorrente/login", async ([FromBody] LoginCommand command, IMediator mediator) =>
 {
+    // O 'result' já é um IResult vindo do Handler (com Ok, Unauthorized, etc.)
     var result = await mediator.Send(command);
-    return Results.Ok(result);
+
+    // Retorne diretamente para que o ASP.NET execute o resultado, 
+    // em vez de serializá-lo como um objeto.
+    return result;
 })
 .WithName("Login").WithOpenApi();
 
