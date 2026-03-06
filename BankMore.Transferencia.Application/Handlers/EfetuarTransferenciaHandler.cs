@@ -24,29 +24,19 @@ public class EfetuarTransferenciaHandler : IRequestHandler<EfetuarTransferenciaC
 
     public async Task<bool> Handle(EfetuarTransferenciaCommand request, CancellationToken cancellationToken)
     {
-        Console.WriteLine($"\n[INÍCIO] Processando transferência: {request.IdRequisicao}");
-
         try
         {
-            // 1. Idempotência
             var jaProcessado = await _idempotenciaRepo.ObterPorChaveAsync(request.IdRequisicao.ToString());
             if (jaProcessado != null) return true;
 
-            // 2. Débito (CORREÇÃO: Adicionado NumeroContaOrigem)
-            Console.WriteLine($"[API] Solicitando DÉBITO na conta {request.NumeroContaOrigem}...");
             var debitoOk = await _contaCorrenteService.DebitarAsync(
                 request.IdRequisicao,
                 request.Valor,
                 request.Token,
                 request.NumeroContaOrigem);
 
-            if (!debitoOk)
-            {
-                Console.WriteLine("[ERRO] Débito recusado pela API externa.");
-                return false;
-            }
+            if (!debitoOk) return false;
 
-            // 3. Crédito
             var creditoOk = await _contaCorrenteService.CreditarAsync(
                 request.IdRequisicao,
                 request.ContaDestino,
@@ -55,17 +45,15 @@ public class EfetuarTransferenciaHandler : IRequestHandler<EfetuarTransferenciaC
 
             if (!creditoOk)
             {
-                Console.WriteLine("[ERRO] Crédito falhou. Iniciando estorno...");
-                // CORREÇÃO: Adicionado NumeroContaOrigem no estorno também
                 await _contaCorrenteService.DebitarAsync(
                     Guid.NewGuid(),
                     request.Valor * -1,
                     request.Token,
                     request.NumeroContaOrigem);
+
                 return false;
             }
 
-            // 4. Persistência
             var transferencia = new Movimento
             {
                 IdTransferencia = Guid.NewGuid().ToString(),
@@ -77,19 +65,16 @@ public class EfetuarTransferenciaHandler : IRequestHandler<EfetuarTransferenciaC
 
             await _transferenciaRepo.AdicionarAsync(transferencia);
 
-            // 5. Salvar Idempotência
             await _idempotenciaRepo.SalvarChaveAsync(new Idempotencia
             {
                 Chave_Idempotencia = request.IdRequisicao.ToString(),
                 Resultado = "Sucesso"
             });
 
-            Console.WriteLine($"[FIM] Operação {request.IdRequisicao} concluída com sucesso.\n");
             return true;
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"\n[ERRO FATAL] Mensagem: {ex.Message}");
             return false;
         }
     }

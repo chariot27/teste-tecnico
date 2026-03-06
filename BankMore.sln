@@ -1,15 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36327.8 d17.14
+VisualStudioVersion = 17.14.36327.8
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01 - Services", "01 - Services", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "02 - Core", "02 - Core", "{9D1A3B51-7FE8-4531-8E17-199B030E9F5C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03 - Infrastructure", "03 - Infrastructure", "{7157FD20-8E14-4A0A-854A-66CCDB962915}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "04 - Tests", "04 - Tests", "{A0C2F130-8697-466A-9244-2CFE3D7399A9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankMore.ContaCorrente.Api", "BankMore.ContaCorrente.Api\BankMore.ContaCorrente.Api.csproj", "{99F76842-23E2-4C49-9174-BA6029E870F3}"
 EndProject
@@ -26,6 +24,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankMore.ContaCorrente.Infrastructure", "BankMore.ContaCorrente.Infrastructure\BankMore.ContaCorrente.Infrastructure.csproj", "{D0D12232-3942-41AE-BEA9-31F77896592C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankMore.Transferencia.Infrastructure", "BankMore.Transferencia.Infrastructure\BankMore.Transferencia.Infrastructure.csproj", "{4F8EF5DC-E35A-4431-A211-B366FB7A4AC4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01.01 - Testes", "01.01 - Testes", "{23152218-4BF8-49B5-A139-E9BB336F7DCA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankMore.ContaCorrente.API.Test", "BankMore.ContaCorrente.API.Test\BankMore.ContaCorrente.API.Test.csproj", "{2CB016DD-EECD-41CA-A888-9A63E85423F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankMore.Transferencia.API.Test", "BankMore.Transferencia.API.Test\BankMore.Transferencia.API.Test.csproj", "{B48E39DD-1F52-497D-B725-152CAB554269}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,6 +69,14 @@ Global
 		{4F8EF5DC-E35A-4431-A211-B366FB7A4AC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F8EF5DC-E35A-4431-A211-B366FB7A4AC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F8EF5DC-E35A-4431-A211-B366FB7A4AC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2CB016DD-EECD-41CA-A888-9A63E85423F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CB016DD-EECD-41CA-A888-9A63E85423F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CB016DD-EECD-41CA-A888-9A63E85423F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CB016DD-EECD-41CA-A888-9A63E85423F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B48E39DD-1F52-497D-B725-152CAB554269}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B48E39DD-1F52-497D-B725-152CAB554269}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B48E39DD-1F52-497D-B725-152CAB554269}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B48E39DD-1F52-497D-B725-152CAB554269}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -78,6 +90,9 @@ Global
 		{44011CE0-F0E5-485D-90E3-F66EC3039DE5} = {9D1A3B51-7FE8-4531-8E17-199B030E9F5C}
 		{D0D12232-3942-41AE-BEA9-31F77896592C} = {7157FD20-8E14-4A0A-854A-66CCDB962915}
 		{4F8EF5DC-E35A-4431-A211-B366FB7A4AC4} = {7157FD20-8E14-4A0A-854A-66CCDB962915}
+		{23152218-4BF8-49B5-A139-E9BB336F7DCA} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{2CB016DD-EECD-41CA-A888-9A63E85423F0} = {23152218-4BF8-49B5-A139-E9BB336F7DCA}
+		{B48E39DD-1F52-497D-B725-152CAB554269} = {23152218-4BF8-49B5-A139-E9BB336F7DCA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E5FF6B25-DC67-4C38-B202-E3807705ED2A}

@@ -20,12 +20,6 @@
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
 	</ItemGroup>
 
-	
-
-  <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\BankMore.ContaCorrente.Application\BankMore.ContaCorrente.Application.csproj" />
     <ProjectReference Include="..\BankMore.ContaCorrente.Infrastructure\BankMore.ContaCorrente.Infrastructure.csproj" />

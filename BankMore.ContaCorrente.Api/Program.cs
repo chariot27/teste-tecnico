@@ -178,3 +178,5 @@ app.MapGet("/api/contacorrente/saldo", async (IMediator mediator, ClaimsPrincipa
 .WithName("ConsultarSaldo").WithOpenApi().RequireAuthorization();
 
 app.Run();
+
+public partial class Program { }

@@ -114,3 +114,5 @@ app.MapPost("/api/transferencia", async (
 });
 
 app.Run();
+// No final do Program.cs da API
+public partial class Program { }

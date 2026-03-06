@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  contacorrente-api:
+    container_name: ms-contacorrente
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      # O caminho no Data Source deve ser o caminho INTERNO do container (mapeado no volume)
+      - ConnectionStrings__DefaultConnection=Data Source=/app/db/teste.db
+    volumes:
+      # Mapeia a pasta do seu Desktop para a pasta /app/db dentro do container
+      - "C:/Users/noname/Desktop/code/db:/app/db"
+    restart: always
