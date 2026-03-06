@@ -1,18 +1,50 @@
 version: '3.8'
 
 services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    networks:
+      - financeiro-net
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    networks:
+      - financeiro-net
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
   contacorrente-api:
-    container_name: ms-contacorrente
     build:
       context: .
       dockerfile: Dockerfile
+    # Removido container_name para permitir réplicas
     ports:
-      - "5001:8080"
+      - "5001-5002:8080" # Mapeia as réplicas para o range 5001 e 5002 no host
+    depends_on:
+      - kafka
+    networks:
+      - financeiro-net
+    deploy:
+      replicas: 2
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      # O caminho no Data Source deve ser o caminho INTERNO do container (mapeado no volume)
-      - ConnectionStrings__DefaultConnection=Data Source=/app/db/teste.db
+      # Adicionado Pooling e Journal Mode para suportar melhor as réplicas no SQLite
+      - ConnectionStrings__DefaultConnection=Data Source=/app/db/teste.db;Cache=Shared;Mode=ReadWriteCreate;
+      - KafkaSettings__BootstrapServers=kafka:29092
     volumes:
-      # Mapeia a pasta do seu Desktop para a pasta /app/db dentro do container
       - "C:/Users/noname/Desktop/code/db:/app/db"
     restart: always
+
+networks:
+  financeiro-net:
+    driver: bridge

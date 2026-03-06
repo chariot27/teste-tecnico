@@ -2,17 +2,23 @@ version: '3.8'
 
 services:
   transferencias-api:
-    container_name: ms-transferencias
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5002:8080"
+      - "5003-5004:8080" # Mapeia as réplicas para 5003 e 5004
+    networks:
+      - financeiro-net
+    deploy:
+      replicas: 2
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      # Ambos apontam para o mesmo arquivo mapeado
-      - ConnectionStrings__DefaultConnection=Data Source=/app/db/teste.db
+      - ConnectionStrings__DefaultConnection=Data Source=/app/db/teste.db;Cache=Shared;Mode=ReadWriteCreate;
+      - KafkaSettings__BootstrapServers=kafka:29092
     volumes:
-      # Mapeia a mesma pasta do host para este container também
       - "C:/Users/noname/Desktop/code/db:/app/db"
     restart: always
+
+networks:
+  financeiro-net:
+    external: true
