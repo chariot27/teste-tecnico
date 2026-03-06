@@ -108,7 +108,7 @@ app.UseAuthorization();
 app.MapPost("/api/contacorrente/cadastro", async ([FromBody] CadastrarContaCommand command, IMediator mediator) =>
 {
     var result = await mediator.Send(command);
-    return Results.Ok(result);
+    return result;
 })
 .WithName("CadastrarConta").WithOpenApi();
 
