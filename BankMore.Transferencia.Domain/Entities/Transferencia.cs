@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BankMore.Transferencia.Domain.Entities
 {
-    public class Movimento
+    public class Transferencia
     {
         public string IdMovimento { get; set; } // TEXT(37)
         public string IdContaCorrente { get; set; } // TEXT(37)
