@@ -1,24 +1,26 @@
-﻿using Microsoft.Data.Sqlite;
-using Microsoft.Extensions.Configuration;
-using System.Data;
+﻿using System.Data;
+using Microsoft.Data.Sqlite;
 
 namespace BankMore.ContaCorrente.Infrastructure.Data
 {
     public class DbSessionContaCorrente : IDisposable
     {
         public IDbConnection Connection { get; }
+        public IDbTransaction? Transaction { get; private set; }
 
-        public DbSessionContaCorrente(IConfiguration configuration)
+        public DbSessionContaCorrente(string connectionString)
         {
-            // Pega a string de conexão do appsettings.json
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
-
             Connection = new SqliteConnection(connectionString);
             Connection.Open();
         }
 
+        public void BeginTransaction() => Transaction = Connection.BeginTransaction();
+        public void Commit() => Transaction?.Commit();
+        public void Rollback() => Transaction?.Rollback();
+
         public void Dispose()
         {
+            Transaction?.Dispose();
             Connection?.Dispose();
         }
     }

@@ -1,6 +1,6 @@
 ﻿using BankMore.ContaCorrente.Domain.Entities;
 using BankMore.ContaCorrente.Domain.Interfaces;
-using BankMore.ContaCorrente.Infrastructure.Data; // Import necessário para o DbSession
+using BankMore.ContaCorrente.Infrastructure.Data;
 using Dapper;
 using System.Threading.Tasks;
 
@@ -21,27 +21,35 @@ namespace BankMore.ContaCorrente.Infrastructure.Repositories
                 INSERT INTO movimento (idmovimento, idcontacorrente, datamovimento, tipomovimento, valor)
                 VALUES (@IdMovimento, @IdContaCorrente, @DataMovimento, @TipoMovimento, @Valor)";
 
+            // Dapper lida melhor com objetos nativos. 
+            // Se houver uma transação aberta na Session, ela DEVE ser passada aqui.
             await _session.Connection.ExecuteAsync(sql, new
             {
                 movimento.IdMovimento,
                 movimento.IdContaCorrente,
-                DataMovimento = movimento.DataMovimento.ToString("yyyy-MM-dd HH:mm:ss"),
+                // Deixe o driver cuidar da data. Converter para string pode quebrar o filtro de SELECT depois.
+                movimento.DataMovimento,
                 movimento.TipoMovimento,
                 movimento.Valor
-            });
+            }, transaction: _session.Transaction);
         }
 
         public async Task<decimal> ObterSaldoPorContaAsync(string idContaCorrente)
         {
-            
+            // Nota: Se for SQLite, a função é SUM(). TOTAL() é específica e retorna 0.0 em vez de NULL.
+            // Usei SUM e COALESCE para garantir compatibilidade e evitar retornos nulos.
             const string sql = @"
                 SELECT 
-                    TOTAL(CASE WHEN tipomovimento = 'C' THEN valor ELSE 0 END) - 
-                    TOTAL(CASE WHEN tipomovimento = 'D' THEN valor ELSE 0 END) as Saldo
+                    SUM(CASE WHEN tipomovimento = 'C' THEN valor ELSE 0 END) - 
+                    SUM(CASE WHEN tipomovimento = 'D' THEN valor ELSE 0 END)
                 FROM movimento
                 WHERE idcontacorrente = @idContaCorrente";
 
-            return await _session.Connection.QueryFirstOrDefaultAsync<decimal>(sql, new { idContaCorrente });
+            var saldo = await _session.Connection.ExecuteScalarAsync<decimal?>(sql,
+                new { idContaCorrente },
+                transaction: _session.Transaction);
+
+            return saldo ?? 0;
         }
     }
 }

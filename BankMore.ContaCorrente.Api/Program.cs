@@ -14,8 +14,21 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- 1. REGISTRO DE DEPENDÊNCIAS ---
-builder.Services.AddScoped<DbSessionContaCorrente>();
+// --- 1. CONFIGURAÇÕES E STRINGS DE CONEXÃO ---
+// Busca a string do appsettings.json configurada anteriormente
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("String de conexão 'DefaultConnection' não encontrada.");
+
+// Busca a chave secreta do JWT configurada no appsettings.json
+var jwtSecret = builder.Configuration["JwtSettings:Secret"]
+    ?? "ChaveSegurancaPadraoDe32CaracteresMinimo!";
+var key = Encoding.ASCII.GetBytes(jwtSecret);
+
+// --- 2. REGISTRO DE DEPENDÊNCIAS (DI) ---
+// Resolve o erro de injeção de string passando a conexão para a Session
+builder.Services.AddScoped<DbSessionContaCorrente>(provider =>
+    new DbSessionContaCorrente(connectionString));
+
 builder.Services.AddScoped<IContaCorrenteRepository, ContaCorrenteRepository>();
 builder.Services.AddScoped<IMovimentoRepository, MovimentoRepository>();
 builder.Services.AddScoped<IIdempotenciaRepository, IdempotenciaRepository>();
@@ -27,10 +40,7 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(CadastrarContaHandler).Assembly);
 });
 
-// --- 2. SEGURANÇA (JWT) ---
-var secretKey = "SuaChaveSuperSecretaComPeloMenos32Caracteres!!";
-var key = Encoding.ASCII.GetBytes(secretKey);
-
+// --- 3. SEGURANÇA E AUTENTICAÇÃO (JWT) ---
 builder.Services.AddAuthentication(x =>
 {
     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -53,12 +63,11 @@ builder.Services.AddAuthentication(x =>
 
 builder.Services.AddAuthorization();
 
-// --- 3. CONFIGURAÇÃO DO SWAGGER ---
+// --- 4. CONFIGURAÇÃO DO SWAGGER ---
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "BankMore API", Version = "v1" });
-
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -68,7 +77,6 @@ builder.Services.AddSwaggerGen(c =>
         In = ParameterLocation.Header,
         Description = "Insira o token desta forma: Bearer {seu_token}"
     });
-
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -83,7 +91,7 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// --- 4. MIDDLEWARE PIPELINE ---
+// --- 5. MIDDLEWARE PIPELINE ---
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -94,80 +102,75 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// --- 5. ENDPOINTS ---
+// --- 6. ENDPOINTS (MINIMAL APIs) ---
 
+// Cadastro de Conta
 app.MapPost("/api/contacorrente/cadastro", async ([FromBody] CadastrarContaCommand command, IMediator mediator) =>
 {
-    return await mediator.Send(command);
+    var result = await mediator.Send(command);
+    return Results.Ok(result);
 })
-.WithName("CadastrarConta")
-.WithOpenApi();
+.WithName("CadastrarConta").WithOpenApi();
 
+// Login
 app.MapPost("/api/contacorrente/login", async ([FromBody] LoginCommand command, IMediator mediator) =>
 {
-    return await mediator.Send(command);
+    var result = await mediator.Send(command);
+    return Results.Ok(result);
 })
-.WithName("Login")
-.WithOpenApi();
+.WithName("Login").WithOpenApi();
 
+// Inativação de Conta
 app.MapPatch("/api/contacorrente/inativar", async ([FromBody] InativarContaCommand command, IMediator mediator, ClaimsPrincipal user) =>
 {
     var idConta = user.FindFirst("idcontacorrente")?.Value;
-
     if (string.IsNullOrEmpty(idConta))
-        return Results.Json(new { message = "Token inválido ou sem identificação de conta", type = "USER_UNAUTHORIZED" }, statusCode: 401);
+        return Results.Json(new { message = "Não autorizado", type = "USER_UNAUTHORIZED" }, statusCode: 401);
 
     command.IdContaCorrente = idConta;
-    return await mediator.Send(command);
+    var result = await mediator.Send(command);
+    return Results.Ok(result);
 })
-.WithName("InativarConta")
-.WithOpenApi()
-.RequireAuthorization();
+.WithName("InativarConta").WithOpenApi().RequireAuthorization();
 
+// Movimentação (Crédito/Débito)
 app.MapPost("/api/contacorrente/movimentacao", async ([FromBody] MovimentarContaCommand command, IMediator mediator, ClaimsPrincipal user) =>
 {
     var idContaToken = user.FindFirst("idcontacorrente")?.Value;
-
     if (string.IsNullOrEmpty(idContaToken))
-        return Results.Json(new { message = "Token inválido ou expirado", type = "USER_UNAUTHORIZED" }, statusCode: 403);
+        return Results.Json(new { message = "Acesso negado", type = "USER_UNAUTHORIZED" }, statusCode: 403);
 
     command.ContaIdDoToken = idContaToken;
 
     try
     {
         var sucesso = await mediator.Send(command);
-        return sucesso ? Results.NoContent() : Results.BadRequest();
+        return sucesso ? Results.NoContent() : Results.BadRequest(new { message = "Erro ao processar" });
     }
     catch (Exception ex)
     {
-        return Results.Json(new { message = ex.Message, type = ex.Message }, statusCode: 400);
+        return Results.Json(new { message = ex.Message, type = "BUSINESS_ERROR" }, statusCode: 400);
     }
 })
-.WithName("MovimentarConta")
-.WithOpenApi()
-.RequireAuthorization();
+.WithName("MovimentarConta").WithOpenApi().RequireAuthorization();
 
+// Consulta de Saldo
 app.MapGet("/api/contacorrente/saldo", async (IMediator mediator, ClaimsPrincipal user) =>
 {
-
     var idConta = user.FindFirst("idcontacorrente")?.Value;
-
     if (string.IsNullOrEmpty(idConta))
-        return Results.Json(new { message = "Token inválido", type = "USER_UNAUTHORIZED" }, statusCode: 403);
+        return Results.Json(new { message = "Não autorizado", type = "USER_UNAUTHORIZED" }, statusCode: 403);
 
     try
     {
         var result = await mediator.Send(new SaldoQuery { IdContaCorrente = idConta });
-        return Results.Ok(result); // Retorna 200 com o body [cite: 69]
+        return Results.Ok(result);
     }
     catch (Exception ex)
     {
-
-        return Results.Json(new { message = ex.Message, type = ex.Message }, statusCode: 400);
+        return Results.Json(new { message = ex.Message, type = "QUERY_ERROR" }, statusCode: 400);
     }
 })
-.WithName("ConsultarSaldo")
-.WithOpenApi()
-.RequireAuthorization(); // Garante autenticação via JWT [cite: 14]
+.WithName("ConsultarSaldo").WithOpenApi().RequireAuthorization();
 
 app.Run();
