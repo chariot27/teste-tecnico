@@ -2,11 +2,11 @@ Esta é uma excelente base técnica. Para elevar o nível desta documentação e
 
 ---
 
-# 🏦 BankMore - Documentação Técnica
+# BankMore - Documentação Técnica
 
 A plataforma **BankMore** é uma solução de core banking distribuída, projetada para alta disponibilidade e consistência eventual, utilizando padrões modernos de arquitetura em ecossistema .NET.
 
-## 🏗️ 1. Arquitetura de Sistema
+## 1. Arquitetura de Sistema
 
 O sistema adota o **Domain-Driven Design (DDD)** para segregação de contextos e o padrão **CQRS** para otimizar a performance de leitura e escrita.
 
@@ -20,11 +20,11 @@ O sistema adota o **Domain-Driven Design (DDD)** para segregação de contextos 
 
 ---
 
-## 🔐 2. API de Conta Corrente
+## 2. API de Conta Corrente
 
 Gerencia o ciclo de vida do cliente e a integridade do saldo.
 
-### 📍 Endpoints de Operação
+### Endpoints de Operação
 
 > **Base Path:** `/api/contacorrente`
 
@@ -38,7 +38,7 @@ Gerencia o ciclo de vida do cliente e a integridade do saldo.
 
 ---
 
-## 💸 3. Fluxo de Transferência e Tarifas
+##  3. Fluxo de Transferência e Tarifas
 
 Abaixo, o fluxo detalhado da orquestração entre a **API de Transferência** e o **Serviço de Tarifas**.
 
@@ -51,16 +51,16 @@ Abaixo, o fluxo detalhado da orquestração entre a **API de Transferência** e 
 
 ---
 
-## 🛡️ 4. Qualidade e Resiliência
+##  4. Qualidade e Resiliência
 
-### ⚡ Idempotência
+###  Idempotência
 
 Para prevenir duplicidade em cenários de instabilidade de rede (Retry do cliente), implementamos uma camada de interceptação:
 
 * **Check:** Antes do processamento, consulta-se a tabela `idempotencia`.
 * **Cache/Store:** Se o `IdRequisicao` existir, retorna o `Status 200` com o payload armazenado.
 
-### 🔐 Segurança & Dados
+###  Segurança & Dados
 
 * **JWT:** Tokens com tempo de vida curto e assinatura `HMAC SHA256`.
 * **Status da Conta:** Bloqueio imediato de transações para contas com flag `INACTIVE_ACCOUNT`.
@@ -68,5 +68,5 @@ Para prevenir duplicidade em cenários de instabilidade de rede (Retry do client
 ---
 
 
----
+
 
